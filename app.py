@@ -71,7 +71,46 @@ class Playlist:
     def get_songs(self):
         return self.songs.to_list()
 
+# Song Endpoints
 
-# Running the Flask app
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route('/songs', methods=['POST'])
+def create_song():
+    data = request.json
+    song_id = data['id']
+    if song_id in songs:
+        return jsonify({'message': 'Song already exists.'}), 400
+    songs[song_id] = Song(song_id, data['name'], data['artist'], data['genre'])
+    return jsonify({'message': 'Song created.'}), 201
+
+@app.route('/songs/<song_id>', methods=['PUT'])
+def update_song(song_id):
+    if song_id not in songs:
+        return jsonify({'message': 'Song not found.'}), 404
+    data = request.json
+    song = songs[song_id]
+    song.name = data.get('name', song.name)
+    song.artist = data.get('artist', song.artist)
+    song.genre = data.get('genre', song.genre)
+    return jsonify({'message': 'Song updated.'}), 200
+
+@app.route('/songs/<song_id>', methods=['DELETE'])
+def delete_song(song_id):
+    if song_id not in songs:
+        return jsonify({'message': 'Song not found.'}), 404
+    del songs[song_id]
+    return jsonify({'message': 'Song deleted.'}), 200
+
+@app.route('/songs/<song_id>', methods=['GET'])
+def get_song(song_id):
+    if song_id not in songs:
+        return jsonify({'message': 'Song not found.'}), 404
+    song = songs[song_id]
+    return jsonify({'id': song.id, 'name': song.name, 'artist': song.artist, 'genre': song.genre}), 200
+
+@app.route('/songs/search', methods=['GET'])
+def search_songs():
+    query = request.args.get('query')
+    attribute = request.args.get('attribute', 'name')
+    results = [song.__dict__ for song in songs.values() if query.lower() in getattr(song, attribute).lower()]
+    return jsonify(results), 200
+
