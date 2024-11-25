@@ -7,12 +7,16 @@ songs = {}
 playlists = {}
 
 
+
 # Song Endpoints
 
 @app.route('/songs', methods=['POST'])
 def create_song():
     data = request.json
-    song_id = int(data['id'])  # Ensure the ID is an integer
+    try:
+        song_id = int(data['id'])
+    except ValueError:
+        return jsonify({'message': 'Invalid ID format. ID must be an integer.'}), 400
     if song_id in songs:
         return jsonify({'message': 'Song already exists.'}), 400
     songs[song_id] = Song(song_id, data['name'], data['artist'], data['genre'])
@@ -55,7 +59,10 @@ def search_songs():
 @app.route('/playlists', methods=['POST'])
 def create_playlist():
     data = request.json
-    playlist_id = int(data['id'])  # Ensure the ID is an integer
+    try:
+        playlist_id = int(data['id'])
+    except ValueError:
+        return jsonify({'message': 'Invalid ID format. ID must be an integer.'}), 400
     if playlist_id in playlists:
         return jsonify({'message': 'Playlist already exists.'}), 400
     playlists[playlist_id] = Playlist(playlist_id, data['name'])
@@ -91,7 +98,10 @@ def add_song_to_playlist(playlist_id):
     if playlist_id not in playlists:
         return jsonify({'message': 'Playlist not found.'}), 404
     data = request.json
-    song_id = int(data['song_id'])  # Ensure the ID is an integer
+    try:
+        song_id = int(data['song_id'])
+    except ValueError:
+        return jsonify({'message': 'Invalid ID format. Song ID must be an integer.'}), 400
     if song_id not in songs:
         return jsonify({'message': 'Song not found.'}), 404
     playlists[playlist_id].add_song(song_id)
@@ -114,7 +124,8 @@ def sort_songs_in_playlist(playlist_id):
     playlist.songs = LinkedList()
     for song_id in sorted_songs:
         playlist.add_song(song_id)
-    return jsonify({'message': f'Songs sorted by {sort_by}.'}), 200
+    sorted_playlist = [{'id': song_id, 'name': songs[song_id].name, 'artist': songs[song_id].artist, 'genre': songs[song_id].genre} for song_id in sorted_songs]
+    return jsonify({'message': f'Songs sorted by {sort_by}.', 'sorted_playlist': sorted_playlist}), 200
 
 # Running the Flask app
 if __name__ == '__main__':
