@@ -1,158 +1,31 @@
 from flask import Flask, request, jsonify
-
+from Classes import Song, LinkedList, Playlist
 app = Flask(__name__)
+
 
 songs = {}
 playlists = {}
 
-class Song:
-    def __init__(self, song_id, name, artist, genre):
-        self.id = song_id
-        self.name = name
-        self.artist = artist
-        self.genre = genre
-
-class Node:
-    def __init__(self, data):
-        self.data = data
-        self.next = None
-
-class LinkedList:
-    def __init__(self):
-        self.head = None
-
-    def append(self, data):
-        new_node = Node(data)
-        if not self.head:
-            self.head = new_node
-            return
-        last = self.head
-        while last.next:
-            last = last.next
-        last.next = new_node
-
-    def prepend(self, data):
-        new_node = Node(data)
-        new_node.next = self.head
-        self.head = new_node
-
-    def delete_with_value(self, data):
-        if not self.head:
-            return
-        if self.head.data == data:
-            self.head = self.head.next
-            return
-        current = self.head
-        while current.next and current.next.data != data:
-            current = current.next
-        if current.next:
-            current.next = current.next.next
-
-    def to_list(self):
-        elements = []
-        current = self.head
-        while current:
-            elements.append(current.data)
-            current = current.next
-        return elements
-
-class Playlist:
-    def __init__(self, playlist_id, name):
-        self.id = playlist_id
-        self.name = name
-        self.songs = LinkedList()
-
-    def add_song(self, song_id):
-        self.songs.append(song_id)
-
-    def remove_song(self, song_id):
-        self.songs.delete_with_value(song_id)
-
-    def get_songs(self):
-        return self.songs.to_list()
-
-
-
-# Search and Sort Algo Time Complexity and performance trade offs
-
-# *Search Algorithms*
-
-
-# Linear Search
-# Description: Iterates through each song in the playlist to find matches based on the search criteria.
-
-# Time Complexity: 𝑂(𝑛), where 𝑛 is the number of songs.
-# Space Complexity: 𝑂(1).
-
-# Performance Trade-offs:
-# Pros: Simple to implement and understand. It does not require the playlist to be sorted.
-# Cons: Inefficient for large playlists as it checks each element one by one. The search time increases linearly with the size of the playlist.
-
-# Binary Search
-# Description: Searches for a song by repeatedly dividing the search interval in half. 
-# The playlist must be sorted based on the search attribute.
-
-# Time Complexity: 𝑂(log⁡𝑛).
-
-# Space Complexity: 𝑂(1).
-
-# Performance Trade-offs:
-# Pros: Much faster than linear search for large playlists due to its logarithmic time complexity.
-# Cons: Requires the playlist to be sorted, which adds overhead if the playlist changes frequently. Additionally, the search is only efficient if the dataset remains sorted or is sorted prior to the search.
-
-# *Sort Algorithms*
-
-
-
-# QuickSort
-# Description: A divide-and-conquer algorithm that selects a 'pivot' element and partitions the array around the pivot.
-
-# Time Complexity:
-# Average Case: 𝑂(𝑛log⁡𝑛)
-# Worst Case: 𝑂(𝑛^2), typically when the pivot selection is poor (e.g., the smallest or largest element is always chosen as the pivot).
-
-# Space Complexity: 𝑂(log⁡𝑛) due to the recursion stack.
-
-# Performance Trade-offs:
-# Pros: Generally fast with a good average-case performance, and it is an in-place sort (no additional memory is required beyond the original array).
-# Cons: The worst-case performance can be significantly degraded if not properly implemented with a good pivot selection strategy.
-
-# MergeSort
-# Description: Another divide-and-conquer algorithm that divides the array into halves, sorts them, and then merges the sorted halves.
-
-# Time Complexity: 𝑂(𝑛log⁡𝑛) in all cases (best, average, and worst).
-# Space Complexity: 𝑂(𝑛) due to the additional space required for merging.
-
-# Performance Trade-offs:
-# Pros: Guarantees 𝑂(𝑛log⁡𝑛) time complexity and is stable (maintains the relative order of equal elements).
-# Cons: Requires additional space proportional to the size of the input array, which can be an issue for very large datasets.
-
-# ~Application in Playlist Management~
-
-# Searching
-# Linear Search is adequate for moderate-sized playlists and scenarios where the playlist does not require sorting or the data changes frequently.
-# Binary Search is preferable for larger playlists where the data remains relatively static or can be efficiently sorted prior to searches. 
-# This method significantly reduces search times once the initial sorting overhead is managed.
-
-# Sorting
-# QuickSort: Suitable for most playlist sorting needs due to its efficient average-case performance. 
-# It works well for in-place sorting where memory usage is a consideration.
-
-# MergeSort: Best for scenarios where stable sorting is required, and additional memory usage is not a critical concern. 
-# It offers consistent performance regardless of the input data distribution.
 
 # Song Endpoints
 
 @app.route('/songs', methods=['POST'])
 def create_song():
     data = request.json
-    song_id = data['id']
+    song_id = int(data['id'])  # Ensure the ID is an integer
     if song_id in songs:
         return jsonify({'message': 'Song already exists.'}), 400
     songs[song_id] = Song(song_id, data['name'], data['artist'], data['genre'])
     return jsonify({'message': 'Song created.'}), 201
 
-@app.route('/songs/<song_id>', methods=['PUT'])
+@app.route('/songs/<int:song_id>', methods=['GET'])
+def get_song(song_id):
+    if song_id not in songs:
+        return jsonify({'message': 'Song not found.'}), 404
+    song = songs[song_id]
+    return jsonify({'id': song.id, 'name': song.name, 'artist': song.artist, 'genre': song.genre}), 200
+
+@app.route('/songs/<int:song_id>', methods=['PUT'])
 def update_song(song_id):
     if song_id not in songs:
         return jsonify({'message': 'Song not found.'}), 404
@@ -163,19 +36,12 @@ def update_song(song_id):
     song.genre = data.get('genre', song.genre)
     return jsonify({'message': 'Song updated.'}), 200
 
-@app.route('/songs/<song_id>', methods=['DELETE'])
+@app.route('/songs/<int:song_id>', methods=['DELETE'])
 def delete_song(song_id):
     if song_id not in songs:
         return jsonify({'message': 'Song not found.'}), 404
     del songs[song_id]
     return jsonify({'message': 'Song deleted.'}), 200
-
-@app.route('/songs/<song_id>', methods=['GET'])
-def get_song(song_id):
-    if song_id not in songs:
-        return jsonify({'message': 'Song not found.'}), 404
-    song = songs[song_id]
-    return jsonify({'id': song.id, 'name': song.name, 'artist': song.artist, 'genre': song.genre}), 200
 
 @app.route('/songs/search', methods=['GET'])
 def search_songs():
@@ -189,20 +55,20 @@ def search_songs():
 @app.route('/playlists', methods=['POST'])
 def create_playlist():
     data = request.json
-    playlist_id = data['id']
+    playlist_id = int(data['id'])  # Ensure the ID is an integer
     if playlist_id in playlists:
         return jsonify({'message': 'Playlist already exists.'}), 400
     playlists[playlist_id] = Playlist(playlist_id, data['name'])
     return jsonify({'message': 'Playlist created.'}), 201
 
-@app.route('/playlists/<playlist_id>', methods=['GET'])
+@app.route('/playlists/<int:playlist_id>', methods=['GET'])
 def get_playlist(playlist_id):
     if playlist_id not in playlists:
         return jsonify({'message': 'Playlist not found.'}), 404
     playlist = playlists[playlist_id]
     return jsonify({'id': playlist.id, 'name': playlist.name, 'songs': playlist.get_songs()}), 200
 
-@app.route('/playlists/<playlist_id>', methods=['PUT'])
+@app.route('/playlists/<int:playlist_id>', methods=['PUT'])
 def update_playlist(playlist_id):
     if playlist_id not in playlists:
         return jsonify({'message': 'Playlist not found.'}), 404
@@ -211,7 +77,7 @@ def update_playlist(playlist_id):
     playlist.name = data.get('name', playlist.name)
     return jsonify({'message': 'Playlist updated.'}), 200
 
-@app.route('/playlists/<playlist_id>', methods=['DELETE'])
+@app.route('/playlists/<int:playlist_id>', methods=['DELETE'])
 def delete_playlist(playlist_id):
     if playlist_id not in playlists:
         return jsonify({'message': 'Playlist not found.'}), 404
@@ -220,25 +86,25 @@ def delete_playlist(playlist_id):
 
 # Additional Endpoints
 
-@app.route('/playlists/<playlist_id>/songs', methods=['POST'])
+@app.route('/playlists/<int:playlist_id>/songs', methods=['POST'])
 def add_song_to_playlist(playlist_id):
     if playlist_id not in playlists:
         return jsonify({'message': 'Playlist not found.'}), 404
     data = request.json
-    song_id = data['song_id']
+    song_id = int(data['song_id'])  # Ensure the ID is an integer
     if song_id not in songs:
         return jsonify({'message': 'Song not found.'}), 404
     playlists[playlist_id].add_song(song_id)
     return jsonify({'message': 'Song added to playlist.'}), 200
 
-@app.route('/playlists/<playlist_id>/songs/<song_id>', methods=['DELETE'])
+@app.route('/playlists/<int:playlist_id>/songs/<int:song_id>', methods=['DELETE'])
 def remove_song_from_playlist(playlist_id, song_id):
     if playlist_id not in playlists:
         return jsonify({'message': 'Playlist not found.'}), 404
     playlists[playlist_id].remove_song(song_id)
     return jsonify({'message': f'Song with ID {song_id} removed from playlist.'}), 200
 
-@app.route('/playlists/<playlist_id>/sort', methods=['GET'])
+@app.route('/playlists/<int:playlist_id>/sort', methods=['GET'])
 def sort_songs_in_playlist(playlist_id):
     if playlist_id not in playlists:
         return jsonify({'message': 'Playlist not found.'}), 404
