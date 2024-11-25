@@ -7,6 +7,73 @@ songs = {}
 playlists = {}
 
 
+# Search and Sort Algo Time Complexity and performance trade offs
+
+# *Search Algorithms*
+
+# Linear Search
+
+# Description: Iterates through each song in the playlist to find matches based on the search criteria.
+# Time Complexity: 𝑂(𝑛), where 𝑛 is the number of songs.
+# Space Complexity: 𝑂(1).
+
+
+# Performance Trade-offs:
+# Pros: Simple to implement and understand. It does not require the playlist to be sorted.
+# Cons: Inefficient for large playlists as it checks each element one by one. The search time increases linearly with the size of the playlist.
+
+
+# Binary Search
+
+# Description: Searches for a song by repeatedly dividing the search interval in half. 
+# The playlist must be sorted based on the search attribute.
+# Time Complexity: 𝑂(log⁡𝑛).
+# Space Complexity: 𝑂(1).
+
+# Performance Trade-offs:
+# Pros: Much faster than linear search for large playlists due to its logarithmic time complexity.
+# Cons: Requires the playlist to be sorted, which adds overhead if the playlist changes frequently. Additionally, the search is only efficient if the dataset remains sorted or is sorted prior to the search.
+
+# *Sort Algorithms*
+
+# QuickSort
+
+# Description: A divide-and-conquer algorithm that selects a 'pivot' element and partitions the array around the pivot.
+# Time Complexity:
+# Average Case: 𝑂(𝑛log⁡𝑛)
+# Worst Case: 𝑂(𝑛^2), typically when the pivot selection is poor (e.g., the smallest or largest element is always chosen as the pivot).
+# Space Complexity: 𝑂(log⁡𝑛) due to the recursion stack.
+
+# Performance Trade-offs:
+# Pros: Generally fast with a good average-case performance, and it is an in-place sort (no additional memory is required beyond the original array).
+# Cons: The worst-case performance can be significantly degraded if not properly implemented with a good pivot selection strategy.
+
+# MergeSort
+
+# Description: Another divide-and-conquer algorithm that divides the array into halves, sorts them, and then merges the sorted halves.
+# Time Complexity: 𝑂(𝑛log⁡𝑛) in all cases (best, average, and worst).
+# Space Complexity: 𝑂(𝑛) due to the additional space required for merging.
+
+# Performance Trade-offs:
+# Pros: Guarantees 𝑂(𝑛log⁡𝑛) time complexity and is stable (maintains the relative order of equal elements).
+# Cons: Requires additional space proportional to the size of the input array, which can be an issue for very large datasets.
+
+
+# ~Application in Playlist Management~
+
+# Searching
+# Linear Search is adequate for moderate-sized playlists and scenarios where the playlist does not require sorting or the data changes frequently.
+# Binary Search is preferable for larger playlists where the data remains relatively static or can be efficiently sorted prior to searches. 
+# This method significantly reduces search times once the initial sorting overhead is managed.
+
+# Sorting
+# QuickSort: Suitable for most playlist sorting needs due to its efficient average-case performance. 
+# It works well for in-place sorting where memory usage is a consideration.
+# MergeSort: Best for scenarios where stable sorting is required, and additional memory usage is not a critical concern. 
+# It offers consistent performance regardless of the input data distribution.
+
+
+
 
 # Song Endpoints
 
